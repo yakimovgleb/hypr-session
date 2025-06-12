@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::process::{Command, Stdio};
 
-const SESSION_FILE: &str = "/home/roki/.cache/hypr-session.json";
+const SESSION_FILE: &str = "/home/your_username/.cache/hypr-session.json";
 
 #[derive(Serialize, Deserialize, Debug)]
 struct WindowInfo {
