@@ -2,9 +2,9 @@ use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
+use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
-const SESSION_FILE: &str = "/home/your_user/.cache/hypr-session.json";
 
 #[derive(Serialize, Deserialize, Debug)]
 struct WindowInfo {
@@ -35,17 +35,18 @@ fn get_clients() -> Result<Vec<WindowInfo>> {
     Ok(windows)
 }
 
-fn save_session(path: &str) -> Result<()> {
+fn save_session(path: &PathBuf) -> Result<()> {
     let windows = get_clients()?;
     let data = serde_json::to_string_pretty(&windows)?;
 
+    fs::create_dir_all(path.parent().unwrap())?;
     fs::write(path, data)?;
-    println!("Session save to {path}");
+    println!("Session save to {}", path.display());
 
     Ok(())
 }
 
-fn load_session(path: &str) -> Result<()> {
+fn load_session(path: &PathBuf) -> Result<()> {
     let data = fs::read_to_string(path)?;
     let windows: Vec<WindowInfo> = serde_json::from_str(&data)?;
 
@@ -88,12 +89,20 @@ fn load_session(path: &str) -> Result<()> {
     Ok(())
 }
 
+fn get_session_file() -> PathBuf {
+    dirs::home_dir()
+        .expect("Could not find home directory")
+        .join(".config/hypr/hypr-sessiong.json")
+}
+
 fn main() -> Result<()> {
+    let session_file = get_session_file();
+    
     let args: Vec<String> = std::env::args().collect();
 
     match args.get(1).map(|s| s.as_str()) {
-        Some("save") => save_session(SESSION_FILE)?,
-        Some("load") => load_session(SESSION_FILE)?,
+        Some("save") => save_session(&session_file)?,
+        Some("load") => load_session(&session_file)?,
         _ => {
             println!("Usage: hypr-session load|save");
         }
