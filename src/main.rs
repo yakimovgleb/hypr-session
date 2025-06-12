@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::process::{Command, Stdio};
 
-const SESSION_FILE: &str = "/home/your_username/.cache/hypr-session.json";
+const SESSION_FILE: &str = "/home/your_user/.cache/hypr-session.json";
 
 #[derive(Serialize, Deserialize, Debug)]
 struct WindowInfo {
@@ -55,7 +55,17 @@ fn load_session(path: &str) -> Result<()> {
     app_map.insert("Spotify", "spotify-launcher");
     app_map.insert("kitty", "kitty");
 
+    let mut firefox_launched = false;
+
     for window in windows {
+        if window.class == "firefox".to_string() {
+            if firefox_launched {
+                continue;
+            }
+
+            firefox_launched = true;
+        }
+
         if let Some(cmd) = app_map.get(window.class.as_str()) {
             Command::new("hyprctl")
                 // .args(["dispatch", "workspace", window.workspace.to_string()])
