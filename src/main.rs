@@ -1,3 +1,5 @@
+// TODO: parallel lanching of apps
+
 mod session;
 
 fn main() {

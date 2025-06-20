@@ -1,7 +1,11 @@
-use std::{fs, io::{stdout, Error, ErrorKind, Result}, path::{Path, PathBuf}, process::{Command, Stdio}};
+use std::{
+    fs,
+    io::{Error, ErrorKind, Result},
+    path::{Path, PathBuf},
+    process::{Command, Stdio},
+};
 
 use serde::Deserialize;
-
 
 const CONFIG_FILE: &str = "hypr/hypr-session.json";
 
@@ -13,15 +17,16 @@ struct AppInfo {
 }
 
 fn get_config_file() -> PathBuf {
-    dirs::config_dir()
-        .unwrap()
-        .join(CONFIG_FILE)
+    dirs::config_dir().unwrap().join(CONFIG_FILE)
 }
 
 fn load_from_json(path: PathBuf) -> Result<Vec<AppInfo>> {
     println!("{path:?}");
     if !Path::exists(&path) {
-        return Err(Error::new(ErrorKind::InvalidFilename, "Config file doesn't exist"));
+        return Err(Error::new(
+            ErrorKind::InvalidFilename,
+            "Config file doesn't exist",
+        ));
     }
 
     let file = fs::read_to_string(path)?;
@@ -36,15 +41,19 @@ pub fn load_session() -> Result<()> {
     let apps = load_from_json(path)?;
 
     for a in apps {
-        if let Some(workspace) = a.workspace {
-            Command::new("hyprctl")
-                .arg("dispatch")
-                .arg("workspace")
-                .arg(workspace.to_string())
-                .stdout(Stdio::null())
-                .stderr(Stdio::null())
-                .status()?;
+        let mut workspace = 1;
+
+        if let Some(ws) = a.workspace {
+            workspace = ws;
         }
+
+        Command::new("hyprctl")
+            .arg("dispatch")
+            .arg("workspace")
+            .arg(workspace.to_string())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()?;
 
         Command::new(a.command)
             .stdout(Stdio::null())
